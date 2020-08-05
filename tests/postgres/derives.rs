@@ -406,6 +406,37 @@ async fn test_from_row_with_rename() -> anyhow::Result<()> {
 
 #[cfg(feature = "macros")]
 #[sqlx_macros::test]
+async fn test_from_row_with_flatten() -> anyhow::Result<()> {
+    #[derive(Debug, sqlx::FromRow)]
+    struct AccountFields {
+        name: String,
+        ty: String,
+    }
+
+    #[derive(Debug, sqlx::FromRow)]
+    struct Account {
+        id: i32,
+        #[sqlx(flatten)]
+        fields: AccountFields,
+    }
+
+    let mut conn = new::<Postgres>().await?;
+
+    let account: Account =
+        sqlx::query_as(r#"SELECT * from (VALUES (1, 'foo', 'bar')) accounts(id, name, ty)"#)
+            .fetch_one(&mut conn)
+            .await?;
+    println!("{:?}", account);
+
+    assert_eq!(1, account.id);
+    assert_eq!("foo", account.fields.name);
+    assert_eq!("bar", account.fields.ty);
+
+    Ok(())
+}
+
+#[cfg(feature = "macros")]
+#[sqlx_macros::test]
 async fn test_default() -> anyhow::Result<()> {
     #[derive(Debug, sqlx::FromRow)]
     struct HasDefault {

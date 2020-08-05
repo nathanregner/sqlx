@@ -66,20 +66,31 @@ fn expand_derive_from_row_struct(
     for field in fields {
         let ty = &field.ty;
 
-        predicates.push(parse_quote!(#ty: sqlx::decode::Decode<#lifetime, R::Database>));
-        predicates.push(parse_quote!(#ty: sqlx::types::Type<R::Database>));
+        let attributes = parse_child_attributes(&field.attrs).unwrap();
+        if attributes.flatten {
+            predicates.push(parse_quote!(#ty: sqlx::FromRow<#lifetime, R>));
+        } else {
+            predicates.push(parse_quote!(#ty: sqlx::decode::Decode<#lifetime, R::Database>));
+            predicates.push(parse_quote!(#ty: sqlx::types::Type<R::Database>));
+        }
     }
 
     let (impl_generics, _, where_clause) = generics.split_for_impl();
 
     let reads = fields.iter().filter_map(|field| -> Option<Stmt> {
         let id = &field.ident.as_ref()?;
+        let ty = &field.ty;
         let attributes = parse_child_attributes(&field.attrs).unwrap();
+        if attributes.flatten {
+            return Some(parse_quote!(
+                let #id: #ty = FromRow::from_row(row)?;
+            ));
+        }
+
         let id_s = match attributes.rename {
             Some(rename) => rename,
             None => id.to_string().trim_start_matches("r#").to_owned(),
         };
-        let ty = &field.ty;
 
         if attributes.default {
             Some(
