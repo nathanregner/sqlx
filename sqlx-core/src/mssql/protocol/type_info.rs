@@ -514,6 +514,7 @@ impl TypeInfo {
             DataType::Char => "CHAR",
             DataType::BigChar => "BIGCHAR",
             DataType::NChar => "NCHAR",
+            DataType::Guid => "UNIQUEIDENTIFIER",
 
             _ => unimplemented!("name: unsupported data type {:?}", self.ty),
         }
@@ -574,9 +575,9 @@ impl TypeInfo {
                 }
             }
 
-            DataType::BitN => {
-                s.push_str("bit");
-            }
+            DataType::BitN => s.push_str("bit"),
+
+            DataType::Guid => s.push_str("uniqueidentifier"),
 
             _ => unimplemented!("fmt: unsupported data type {:?}", self.ty),
         }

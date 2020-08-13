@@ -41,3 +41,13 @@ test_type!(bool(
     "CAST(1 as BIT)" == true,
     "CAST(0 as BIT)" == false
 ));
+
+#[cfg(feature = "uuid")]
+test_type!(uuid<sqlx::types::Uuid>(Mssql,
+    "CAST('b731678f-636f-4135-bc6f-19440c13bd19' as UNIQUEIDENTIFIER)"
+        == sqlx::types::Uuid::parse_str("b731678f-636f-4135-bc6f-19440c13bd19").unwrap(),
+    "CAST('00010203-0405-0607-0809-0a0b0c0d0e0f' as UNIQUEIDENTIFIER)"
+        == sqlx::types::Uuid::parse_str("00010203-0405-0607-0809-0a0b0c0d0e0f").unwrap(),
+    "CAST('00000000-0000-0000-0000-000000000000' as UNIQUEIDENTIFIER)"
+        == sqlx::types::Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap()
+));

@@ -1,3 +1,5 @@
+mod uuid;
+
 use crate::encode::{Encode, IsNull};
 use crate::mssql::protocol::type_info::{DataType, TypeInfo};
 use crate::mssql::{Mssql, MssqlTypeInfo};
